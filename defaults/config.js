@@ -35,6 +35,13 @@ module.exports = {
 	// This value is set to `9000` by default.
 	port: 9000,
 
+	// ### `chmod`
+	//
+	// Set the permissions of the UNIX domain socket.
+	//
+	// This value is set to `0o660` by default.
+	chmod: 0o660,
+
 	// ### `bind`
 	//
 	// Set the local IP to bind to for outgoing connections.
