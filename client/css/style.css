@@ -2729,6 +2729,7 @@ part/quit messages where we don't load previews (adds a blank line otherwise) */
 
 /* Image viewer and drag-and-drop overlay */
 
+#input-dialog-overlay,
 #confirm-dialog-overlay,
 #upload-overlay,
 #image-viewer,
@@ -2741,6 +2742,7 @@ part/quit messages where we don't load previews (adds a blank line otherwise) */
 	justify-content: center;
 }
 
+#input-dialog-overlay,
 #confirm-dialog-overlay,
 #upload-overlay,
 #image-viewer {
@@ -2757,11 +2759,16 @@ part/quit messages where we don't load previews (adds a blank line otherwise) */
 	user-select: none;
 }
 
+#input-dialog-overlay.opened,
 #confirm-dialog-overlay.opened,
 #upload-overlay.is-dragover,
 #image-viewer.opened {
 	visibility: visible;
 	opacity: 1;
+}
+
+#input-dialog-overlay {
+	background: rgba(0, 0, 0, 0.4);
 }
 
 #confirm-dialog-overlay,

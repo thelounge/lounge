@@ -7,6 +7,7 @@
 		<ImageViewer ref="imageViewer" />
 		<ContextMenu ref="contextMenu" />
 		<ConfirmDialog ref="confirmDialog" />
+		<InputDialog ref="inputDialog" />
 		<div id="upload-overlay"></div>
 	</div>
 </template>
@@ -23,6 +24,7 @@ import Sidebar from "./Sidebar.vue";
 import ImageViewer from "./ImageViewer.vue";
 import ContextMenu from "./ContextMenu.vue";
 import ConfirmDialog from "./ConfirmDialog.vue";
+import InputDialog from "./InputDialog.vue";
 import Mentions from "./Mentions.vue";
 
 export default {
@@ -32,6 +34,7 @@ export default {
 		ImageViewer,
 		ContextMenu,
 		ConfirmDialog,
+		InputDialog,
 		Mentions,
 	},
 	computed: {

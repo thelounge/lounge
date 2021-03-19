@@ -252,10 +252,28 @@ export function generateUserContextMenu($root, channel, network, user) {
 			type: "item",
 			class: "action-kick",
 			action() {
-				socket.emit("input", {
-					target: channel.id,
-					text: "/kick " + user.nick,
-				});
+				eventbus.emit(
+					"input-dialog",
+					{
+						title: "Kick Reason",
+						text: `Please give your reason to kick ${user.nick} from ${channel.name}.`,
+						placeholder: `Reason to kick ${user.nick} from ${channel.name}...`,
+						button: `Kick ${user.nick}`,
+					},
+					(result) => {
+						if (result === null) {
+							socket.emit("input", {
+								target: channel.id,
+								text: `/kick ${user.nick}`,
+							});
+						} else {
+							socket.emit("input", {
+								target: channel.id,
+								text: `/kick ${user.nick} ${result}`,
+							});
+						}
+					}
+				);
 			},
 		});
 
