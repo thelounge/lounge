@@ -240,20 +240,21 @@
 			>
 				<h2>File uploads</h2>
 				<div>
-					<label class="opt">
+					<label
+						class="opt tooltipped tooltipped-n tooltipped-no-delay"
+						aria-label="This option renders the image into a
+canvas element to remove metadata from
+the image. This may break orientation
+if your browser does not support that."
+					>
 						<input
 							:checked="$store.state.settings.uploadCanvas"
 							type="checkbox"
 							name="uploadCanvas"
 						/>
 						Attempt to remove metadata from images before uploading
-						<span
-							class="tooltipped tooltipped-n tooltipped-no-delay"
-							aria-label="This option renders the image into a canvas element to remove metadata from the image.
-This may break orientation if your browser does not support that."
-						>
-							<button class="extra-help" />
-						</span>
+
+						<button class="extra-help" />
 					</label>
 				</div>
 			</div>
@@ -359,7 +360,7 @@ This may break orientation if your browser does not support that."
 						Custom highlights
 						<span
 							class="tooltipped tooltipped-n tooltipped-no-delay"
-							aria-label="If a message contains any of these comma-separated 
+							aria-label="If a message contains any of these comma-separated
 expressions, it will trigger a highlight."
 						>
 							<button class="extra-help" />
@@ -382,8 +383,8 @@ expressions, it will trigger a highlight."
 						Highlight exceptions
 						<span
 							class="tooltipped tooltipped-n tooltipped-no-delay"
-							aria-label="If a message contains any of these comma-separated 
-expressions, it will not trigger a highlight even if it contains 
+							aria-label="If a message contains any of these comma-separated
+expressions, it will not trigger a highlight even if it contains
 your nickname or expressions defined in custom highlights."
 						>
 							<button class="extra-help" />
