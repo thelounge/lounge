@@ -285,6 +285,7 @@ p {
 #viewport .rt::before,
 #chat button.mentions::before,
 #chat button.menu::before,
+.toolbar button.format::before,
 .channel-list-item::before,
 #footer .icon,
 #chat .count::before,
@@ -293,6 +294,7 @@ p {
 #settings #play::before,
 #form #upload::before,
 #form #submit::before,
+#form #format::before,
 #chat .msg[data-type="away"] .from::before,
 #chat .msg[data-type="back"] .from::before,
 #chat .msg[data-type="invite"] .from::before,
@@ -337,6 +339,15 @@ p {
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 }
+
+.toolbar button.format-b::before { content: "\f032"; /* http://fontawesome.io/icon/bold/ */ }
+.toolbar button.format-u::before { content: "\f0cd"; /* http://fontawesome.io/icon/underline/ */ }
+.toolbar button.format-i::before { content: "\f033"; /* http://fontawesome.io/icon/italic/ */ }
+.toolbar button.format-s::before { content: "\f0cc"; /* http://fontawesome.io/icon/strikethrough/ */ }
+.toolbar button.format-m::before { content: "\f121"; /* http://fontawesome.io/icon/code/ */ }
+.toolbar button.format-k::before { content: "\f53f"; /* https://fontawesome.com/icons/palette */ }
+.toolbar button.format-o::before { content: "\f87d"; /* http://fontawesome.io/icon/remove-format/ */ }
+#form #format::before { content: "\f031"; /* https://fontawesome.io/icons/font/ */ }
 
 #viewport .lt::before { content: "\f0c9"; /* http://fontawesome.io/icon/bars/ */ }
 #viewport .rt::before { content: "\f0c0"; /* https://fontawesome.com/icons/users?style=solid */ }
@@ -2189,6 +2200,7 @@ part/quit messages where we don't load previews (adds a blank line otherwise) */
 	display: none;
 }
 
+#form #format,
 #form #upload,
 #form #submit {
 	color: #607992;
@@ -2198,6 +2210,7 @@ part/quit messages where we don't load previews (adds a blank line otherwise) */
 	flex: 0 0 auto;
 }
 
+#form #format[disabled],
 #form #upload[disabled],
 #form #submit[disabled] {
 	opacity: 0.5;
@@ -2847,4 +2860,37 @@ part/quit messages where we don't load previews (adds a blank line otherwise) */
 #chat .new-topic,
 #chat table.channel-list .topic {
 	white-space: pre-wrap;
+}
+
+#form .toolbar-container {
+	position: absolute;
+	top: -70px;
+	left: 0;
+	right: 0;
+	pointer-events: none;
+	display: flex;
+	justify-content: center;
+}
+
+#form .toolbar-container.opened {
+	display: flex;
+}
+
+#form .toolbar-container .toolbar {
+	display: flex;
+	background: var(--body-bg-color);
+	color: var(--button-color);
+	padding: 0 6px;
+	border-radius: 5px;
+	opacity: 0;
+	transition: opacity 0.2s;
+}
+
+#form .toolbar-container.opened .toolbar {
+	pointer-events: all;
+	opacity: 1;
+}
+
+#form .toolbar-container .toolbar button {
+	padding: 10px 14px;
 }
