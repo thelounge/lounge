@@ -1,6 +1,7 @@
 "use strict";
 
 const cheerio = require("cheerio");
+const contentDisposition = require("content-disposition");
 const got = require("got");
 const URL = require("url").URL;
 const mime = require("mime-types");
@@ -10,6 +11,7 @@ const storage = require("../storage");
 const currentFetchPromises = new Map();
 const imageTypeRegex = /^image\/.+/;
 const mediaTypeRegex = /^(audio|video)\/.+/;
+const path = require("path");
 
 module.exports = function (client, chan, msg, cleanText) {
 	if (!Helper.config.prefetch) {
@@ -206,6 +208,7 @@ function parse(msg, chan, preview, res, client) {
 	let promise;
 
 	preview.size = res.size;
+	preview.filename = res.filename;
 
 	switch (res.type) {
 		case "text/html":
@@ -249,6 +252,8 @@ function parse(msg, chan, preview, res, client) {
 		case "audio/x-midi":
 		case "audio/x-mpeg":
 		case "audio/x-mpeg-3":
+		case "audio/flac":
+		case "audio/x-flac":
 			if (!preview.link.startsWith("https://")) {
 				break;
 			}
@@ -380,6 +385,7 @@ function fetch(uri, headers) {
 		let buffer = Buffer.from("");
 		let contentLength = 0;
 		let contentType;
+		let filename;
 		let limit = Helper.config.prefetchMaxImageSize * 1024;
 
 		try {
@@ -396,6 +402,16 @@ function fetch(uri, headers) {
 				.on("response", function (res) {
 					contentLength = parseInt(res.headers["content-length"], 10) || 0;
 					contentType = res.headers["content-type"];
+					filename =
+						"content-disposition" in res.headers
+							? contentDisposition.parse(res.headers["content-disposition"])
+									.parameters.filename || null
+							: null;
+
+					if (filename === null) {
+						const basename = decodeURI(path.basename(new URL(uri).pathname));
+						filename = basename.indexOf(".") > 0 ? basename : null;
+					}
 
 					if (imageTypeRegex.test(contentType)) {
 						// response is an image
@@ -436,7 +452,7 @@ function fetch(uri, headers) {
 						type = contentType.split(/ *; */).shift();
 					}
 
-					resolve({data: buffer, type, size});
+					resolve({data: buffer, type, size, filename});
 				});
 		} catch (e) {
 			return reject(e);

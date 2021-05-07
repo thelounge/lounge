@@ -8,7 +8,11 @@
 	>
 		<div
 			ref="content"
-			:class="['toggle-content', 'toggle-type-' + link.type, {opened: isContentShown}]"
+			:class="[
+				'toggle-content',
+				'toggle-type-' + link.type,
+				{opened: isContentShown, 'with-filename': link.filename},
+			]"
 		>
 			<template v-if="link.type === 'link'">
 				<a
@@ -64,13 +68,20 @@
 			<template v-else-if="link.type === 'image'">
 				<a
 					:href="link.link"
-					class="toggle-thumbnail"
+					:title="link.filename"
+					:class="['toggle-thumbnail', {'wide-view': useWideImageView}]"
 					target="_blank"
 					rel="noopener"
 					@click="onThumbnailClick"
 				>
+					<div v-if="link.filename" class="image-filename">
+						<span class="inner-image-filename">
+							{{ link.filename }}
+						</span>
+					</div>
 					<img
 						v-show="link.sourceLoaded"
+						ref="image"
 						:src="link.thumb"
 						decoding="async"
 						alt=""
@@ -79,6 +90,7 @@
 				</a>
 			</template>
 			<template v-else-if="link.type === 'video'">
+				<span v-if="link.filename" class="video-filename">{{ link.filename }}</span>
 				<video
 					v-show="link.sourceLoaded"
 					preload="metadata"
@@ -89,14 +101,28 @@
 				</video>
 			</template>
 			<template v-else-if="link.type === 'audio'">
-				<audio
-					v-show="link.sourceLoaded"
-					controls
-					preload="metadata"
-					@canplay="onPreviewReady"
-				>
-					<source :src="link.media" :type="link.mediaType" />
-				</audio>
+				<div>
+					<a
+						v-if="link.filename"
+						:href="link.link"
+						:title="link.filename"
+						target="_blank"
+						rel="noopener"
+						class="audio-filename"
+					>
+						<span class="inner-audio-filename">
+							{{ link.filename }}
+						</span>
+					</a>
+					<audio
+						v-show="link.sourceLoaded"
+						controls
+						preload="metadata"
+						@canplay="onPreviewReady"
+					>
+						<source :src="link.media" :type="link.mediaType" />
+					</audio>
+				</div>
 			</template>
 			<template v-else-if="link.type === 'error'">
 				<em v-if="link.error === 'image-too-big'">
@@ -144,6 +170,7 @@ export default {
 		return {
 			showMoreButton: false,
 			isContentShown: false,
+			useWideImageView: false,
 		};
 	},
 	computed: {
@@ -206,6 +233,8 @@ export default {
 			if (this.link.type === "link") {
 				this.handleResize();
 			}
+
+			this.updateWideImageViewDecision();
 		},
 		onThumbnailError() {
 			// If thumbnail fails to load, hide it and show the preview without it
@@ -231,7 +260,22 @@ export default {
 
 				this.showMoreButton =
 					this.$refs.content.offsetWidth >= this.$refs.container.offsetWidth;
+
+				this.updateWideImageViewDecision();
 			});
+		},
+		updateWideImageViewDecision() {
+			if (window.innerWidth < 480) {
+				// Mobile
+				this.useWideImageView =
+					this.$refs.image &&
+					this.$refs.image.naturalWidth / this.$refs.image.naturalHeight <= 1.34; // aspect ratio around 4:3 and slimmer
+			} else {
+				// Desktop
+				this.useWideImageView =
+					this.$refs.image &&
+					this.$refs.image.naturalWidth / this.$refs.image.naturalHeight <= 1.6; // aspect ratio 16:10 and slimmer
+			}
 		},
 		updateShownState() {
 			// User has manually toggled the preview, do not apply default

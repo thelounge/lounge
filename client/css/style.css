@@ -1564,6 +1564,24 @@ textarea.input {
 	white-space: normal;
 }
 
+#chat .toggle-content .wide-view {
+	display: flex;
+	flex-direction: row;
+}
+
+#chat .toggle-content .wide-view .image-filename {
+	order: 2;
+}
+
+#chat .toggle-content .wide-view .image-filename span {
+	width: auto;
+	max-width: 500px;
+}
+
+#chat .toggle-content .wide-view img {
+	order: 1;
+}
+
 /* This applies to images of preview-type-image and thumbnails of preview-type-link */
 #chat .toggle-content img {
 	max-width: 100%;
@@ -1658,8 +1676,50 @@ textarea.input {
 	max-width: 100%;
 }
 
+#chat .toggle-type-image > a {
+	position: relative;
+	font-weight: 700;
+	color: inherit;
+}
+
+#chat .toggle-type-image.with-filename .image-filename {
+	padding: 8px 10px 10px;
+	display: flex;
+}
+
+#chat .toggle-type-image .inner-image-filename,
+#chat .toggle-type-audio .inner-audio-filename {
+	width: 0;
+	flex-grow: 1;
+}
+
+#chat .toggle-content.toggle-type-audio.with-filename {
+	padding: 8px 10px 10px;
+}
+
+#chat .toggle-content.toggle-type-audio .audio-filename {
+	font-weight: 700;
+	padding-bottom: 10px;
+	color: inherit;
+	display: flex;
+}
+
+#chat .toggle-type-audio .head {
+	padding-bottom: 10px;
+}
+
 #chat .toggle-type-video {
 	max-width: 640px;
+	position: relative;
+}
+
+#chat .toggle-type-video .video-filename {
+	position: absolute;
+	top: 0;
+	width: 100%;
+	padding: 1em;
+	background: linear-gradient(black, transparent);
+	color: white;
 }
 
 #chat video {
