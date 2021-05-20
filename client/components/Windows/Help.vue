@@ -151,6 +151,26 @@
 
 			<div class="help-item">
 				<div class="subject">
+					<span v-if="!isApple"><kbd>Alt</kbd> <kbd>Ctrl</kbd> <kbd>↓</kbd></span>
+					<span v-else><kbd>⌥</kbd> <kbd>⌘</kbd> <kbd>↓</kbd></span>
+				</div>
+				<div class="description">
+					<p>Switch to the next window with unread messages in the channel list.</p>
+				</div>
+			</div>
+
+			<div class="help-item">
+				<div class="subject">
+					<span v-if="!isApple"><kbd>Alt</kbd> <kbd>Ctrl</kbd> <kbd>↑</kbd></span>
+					<span v-else><kbd>⌥</kbd> <kbd>⌘</kbd> <kbd>↑</kbd></span>
+				</div>
+				<div class="description">
+					<p>Switch to the previous window with unread messages in the channel list.</p>
+				</div>
+			</div>
+
+			<div class="help-item">
+				<div class="subject">
 					<span v-if="!isApple"><kbd>Alt</kbd> <kbd>A</kbd></span>
 					<span v-else><kbd>⌥</kbd> <kbd>A</kbd></span>
 				</div>

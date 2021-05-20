@@ -78,6 +78,33 @@ Mousetrap.bind(["alt+shift+up", "alt+shift+down"], function (e, keys) {
 	return false;
 });
 
+// Switch to the next/previous unread chat
+Mousetrap.bind(["alt+mod+up", "alt+mod+down"], function (e, keys) {
+	if (isIgnoredKeybind(e)) {
+		return true;
+	}
+
+	const channels = store.state.networks
+		.map((net) =>
+			net.channels.filter((chan) => chan.unread || chan === store.state.activeChannel.channel)
+		)
+		.flat();
+
+	if (channels.length === 0) {
+		return;
+	}
+
+	let index = channels.findIndex((chan) => chan === store.state.activeChannel.channel);
+
+	const length = channels.length;
+	const direction = keys.split("+").pop() === "up" ? -1 : 1;
+	index = (((index + direction) % length) + length) % length;
+
+	jumpToChannel(channels[index]);
+
+	return false;
+});
+
 // Jump to the first window with a highlight in it, or the first with unread
 // activity if there are none with highlights.
 Mousetrap.bind(["alt+a"], function (e) {
