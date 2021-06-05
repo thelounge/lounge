@@ -7,14 +7,26 @@ const filenamify = require("filenamify");
 const Helper = require("../../helper");
 const Msg = require("../../models/msg");
 
-class TextFileMessageStorage {
+class MessageStorage {
 	constructor(client) {
 		this.client = client;
 		this.isEnabled = false;
+		this._clientFolder = null;
 	}
 
 	enable() {
 		this.isEnabled = true;
+		const clientFolder = path.join(Helper.getUserLogsPath(), this.client.name);
+
+		try {
+			fs.mkdirSync(clientFolder, {recursive: true});
+			this._clientFolder = clientFolder;
+			this.isEnabled = true;
+			return true;
+		} catch (e) {
+			log.error(`Unable to create client log directory at: "${clientFolder}"`, e);
+			return false;
+		}
 	}
 
 	close(callback) {
@@ -30,16 +42,9 @@ class TextFileMessageStorage {
 			return;
 		}
 
-		const logPath = path.join(
-			Helper.getUserLogsPath(),
-			this.client.name,
-			TextFileMessageStorage.getNetworkFolderName(network)
-		);
+		const logPath = this._getLogPath(network, channel);
 
-		try {
-			fs.mkdirSync(logPath, {recursive: true});
-		} catch (e) {
-			log.error("Unable to create logs directory", e);
+		if (!logPath) {
 			return;
 		}
 
@@ -99,35 +104,15 @@ class TextFileMessageStorage {
 
 		line += "\n";
 
-		fs.appendFile(
-			path.join(logPath, TextFileMessageStorage.getChannelFileName(channel)),
-			line,
-			(e) => {
-				if (e) {
-					log.error("Failed to write user log", e);
-				}
+		fs.appendFile(logPath, line, (e) => {
+			if (e) {
+				log.error(`Failed to write user log at: "${logPath}"`, e);
 			}
-		);
+		});
 	}
 
 	deleteChannel() {
-		/* TODO: Truncating text logs is disabled, until we figure out some UI for it
-		if (!this.isEnabled) {
-			return;
-		}
-
-		const logPath = path.join(
-			Helper.getUserLogsPath(),
-			this.client.name,
-			TextFileMessageStorage.getNetworkFolderName(network),
-			TextFileMessageStorage.getChannelFileName(channel)
-		);
-
-		fs.truncate(logPath, 0, (e) => {
-			if (e) {
-				log.error("Failed to truncate user log", e);
-			}
-		});*/
+		// At this point in time text storage is append only.
 	}
 
 	getMessages() {
@@ -137,28 +122,35 @@ class TextFileMessageStorage {
 		return Promise.resolve([]);
 	}
 
-	canProvideMessages() {
-		return false;
+	_getLogPath(network, channel) {
+		const logFolder = path.join(this._clientFolder, this._getNetworkFolderName(network));
+
+		try {
+			fs.mkdirSync(logFolder, {recursive: true});
+			return path.join(logFolder, this._getChannelFileName(channel));
+		} catch (e) {
+			log.error(`Unable to create network log directory at: "${logFolder}"`, e);
+		}
 	}
 
-	static getNetworkFolderName(network) {
+	_getNetworkFolderName(network) {
 		// Limit network name in the folder name to 23 characters
 		// So we can still fit 12 characters of the uuid for de-duplication
-		const networkName = cleanFilename(network.name.substring(0, 23).replace(/ /g, "-"));
+		const networkName = this._cleanFilename(network.name.substring(0, 23).replace(/ /g, "-"));
 
 		return `${networkName}-${network.uuid.substring(networkName.length + 1)}`;
 	}
 
-	static getChannelFileName(channel) {
-		return `${cleanFilename(channel.name)}.log`;
+	_getChannelFileName(channel) {
+		return `${this._cleanFilename(channel.name)}.log`;
+	}
+
+	_cleanFilename(name) {
+		name = filenamify(name, {replacement: "_"});
+		name = name.toLowerCase();
+
+		return name;
 	}
 }
 
-module.exports = TextFileMessageStorage;
-
-function cleanFilename(name) {
-	name = filenamify(name, {replacement: "_"});
-	name = name.toLowerCase();
-
-	return name;
-}
+module.exports = MessageStorage;

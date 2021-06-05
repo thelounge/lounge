@@ -6,16 +6,12 @@ const fs = require("fs");
 const Helper = require("../../helper");
 const Msg = require("../../models/msg");
 
-let sqlite3;
+let BetterSqlite3;
 
 try {
-	sqlite3 = require("sqlite3");
+	BetterSqlite3 = require("better-sqlite3");
 } catch (e) {
-	Helper.config.messageStorage = Helper.config.messageStorage.filter((item) => item !== "sqlite");
-
-	log.error(
-		"Unable to load node-sqlite3 module. See https://github.com/mapbox/node-sqlite3/wiki/Binaries"
-	);
+	log.error("Unable to load better-sqlite3 module.");
 }
 
 const currentSchemaVersion = 1520239200;
@@ -35,67 +31,68 @@ class MessageStorage {
 	}
 
 	enable() {
+		if (!BetterSqlite3) {
+			return false;
+		}
+
 		const logsPath = Helper.getUserLogsPath();
-		const sqlitePath = path.join(logsPath, `${this.client.name}.sqlite3`);
 
 		try {
 			fs.mkdirSync(logsPath, {recursive: true});
 		} catch (e) {
 			log.error("Unable to create logs directory", e);
 
-			return;
+			return false;
+		}
+
+		const sqlitePath = path.join(logsPath, `${this.client.name}.sqlite3`);
+		this.database = new BetterSqlite3(sqlitePath);
+
+		try {
+			this.database.transaction((queries) => {
+				for (const query of queries) {
+					this.database.prepare(query).run();
+				}
+			})(schema);
+
+			const check = this.database
+				.prepare("SELECT value FROM options WHERE name = 'schema_version'")
+				.get();
+
+			const storedSchemaVersion = check ? parseInt(check.value, 10) : null;
+			let stmt;
+
+			if (storedSchemaVersion === null) {
+				stmt = this.database.prepare(
+					"INSERT INTO options (name, value) VALUES ('schema_version', ?)"
+				);
+			} else if (storedSchemaVersion > currentSchemaVersion) {
+				log.error(
+					`sqlite schema version is higher than expected (${storedSchemaVersion} > ${currentSchemaVersion}). Is The Lounge out of date?`
+				);
+				return false;
+			} else if (storedSchemaVersion < currentSchemaVersion) {
+				log.info(
+					`sqlite schema version is out of date (${storedSchemaVersion} < ${currentSchemaVersion}). Running migrations if any.`
+				);
+
+				stmt = this.database.prepare(
+					"UPDATE options SET value = ? WHERE name = 'schema_version'"
+				);
+			}
+
+			if (stmt) {
+				this.database.transaction(() => {
+					stmt.run(currentSchemaVersion.toString());
+				})();
+			}
+		} catch (error) {
+			log.error(`Failed to initialize sqltie database: ${error}`);
+			return false;
 		}
 
 		this.isEnabled = true;
-
-		this.database = new sqlite3.Database(sqlitePath);
-		this.database.serialize(() => {
-			schema.forEach((line) => this.database.run(line));
-
-			this.database.get(
-				"SELECT value FROM options WHERE name = 'schema_version'",
-				(err, row) => {
-					if (err) {
-						return log.error(`Failed to retrieve schema version: ${err}`);
-					}
-
-					// New table
-					if (row === undefined) {
-						this.database.serialize(() =>
-							this.database.run(
-								"INSERT INTO options (name, value) VALUES ('schema_version', ?)",
-								currentSchemaVersion
-							)
-						);
-
-						return;
-					}
-
-					const storedSchemaVersion = parseInt(row.value, 10);
-
-					if (storedSchemaVersion === currentSchemaVersion) {
-						return;
-					}
-
-					if (storedSchemaVersion > currentSchemaVersion) {
-						return log.error(
-							`sqlite messages schema version is higher than expected (${storedSchemaVersion} > ${currentSchemaVersion}). Is The Lounge out of date?`
-						);
-					}
-
-					log.info(
-						`sqlite messages schema version is out of date (${storedSchemaVersion} < ${currentSchemaVersion}). Running migrations if any.`
-					);
-
-					this.database.serialize(() =>
-						this.database.run(
-							"UPDATE options SET value = ? WHERE name = 'schema_version'",
-							currentSchemaVersion
-						)
-					);
-				}
-			);
-		});
+		return true;
 	}
 
 	close(callback) {
@@ -103,17 +100,14 @@ class MessageStorage {
 			return;
 		}
 
+		try {
+			this.database.close();
+		} catch (error) {
+			log.error(`Failed to close sqlite database: ${error}`);
+		}
+
 		this.isEnabled = false;
-
-		this.database.close((err) => {
-			if (err) {
-				log.error(`Failed to close sqlite database: ${err}`);
-			}
-
-			if (callback) {
-				callback(err);
-			}
-		});
+		callback();
 	}
 
 	index(network, channel, msg) {
@@ -132,16 +126,19 @@ class MessageStorage {
 			return newMsg;
 		}, {});
 
-		this.database.serialize(() =>
-			this.database.run(
-				"INSERT INTO messages(network, channel, time, type, msg) VALUES(?, ?, ?, ?, ?)",
+		const index = this.database.prepare(
+			"INSERT INTO messages(network, channel, time, type, msg) VALUES(?, ?, ?, ?, ?)"
+		);
+
+		this.database.transaction(() => {
+			index.run(
 				network.uuid,
 				channel.name.toLowerCase(),
 				msg.time.getTime(),
 				msg.type,
 				JSON.stringify(clonedMsg)
-			)
-		);
+			);
+		})();
 	}
 
 	deleteChannel(network, channel) {
@@ -149,13 +146,12 @@ class MessageStorage {
 			return;
 		}
 
-		this.database.serialize(() =>
-			this.database.run(
-				"DELETE FROM messages WHERE network = ? AND channel = ?",
-				network.uuid,
-				channel.name.toLowerCase()
-			)
+		const deleteStmt = this.database.prepare(
+			"DELETE FROM messages WHERE network = ? AND channel = ?"
 		);
+		this.database.transaction(() => {
+			deleteStmt.run(network.uuid, channel.name.toLowerCase());
+		})();
 	}
 
 	/**
@@ -173,30 +169,19 @@ class MessageStorage {
 		const limit = Helper.config.maxHistory < 0 ? 100000 : Helper.config.maxHistory;
 
 		return new Promise((resolve, reject) => {
-			this.database.serialize(() =>
-				this.database.all(
-					"SELECT msg, type, time FROM messages WHERE network = ? AND channel = ? ORDER BY time DESC LIMIT ?",
-					[network.uuid, channel.name.toLowerCase(), limit],
-					(err, rows) => {
-						if (err) {
-							return reject(err);
-						}
-
-						resolve(
-							rows.reverse().map((row) => {
-								const msg = JSON.parse(row.msg);
-								msg.time = row.time;
-								msg.type = row.type;
-
-								const newMsg = new Msg(msg);
-								newMsg.id = this.client.idMsg++;
-
-								return newMsg;
-							})
-						);
-					}
-				)
+			const selectStmt = this.database.prepare(
+				"SELECT * FROM messages WHERE network = ? AND channel = ? ORDER BY time ASC LIMIT ?"
 			);
+
+			try {
+				return resolve(
+					selectStmt
+						.all(network.uuid, channel.name.toLowerCase(), limit)
+						.map(this._messageParser(true))
+				);
+			} catch (error) {
+				return reject(error);
+			}
 		});
 	}
 
@@ -206,7 +191,7 @@ class MessageStorage {
 		}
 
 		let select =
-			'SELECT msg, type, time, network, channel FROM messages WHERE type = "message" AND json_extract(msg, "$.text") LIKE ?';
+			"SELECT * FROM messages WHERE type = 'message' AND json_extract(msg, '$.text') LIKE ?";
 		const params = [`%${query.searchTerm}%`];
 
 		if (query.networkUuid) {
@@ -219,51 +204,47 @@ class MessageStorage {
 			params.push(query.channelName.toLowerCase());
 		}
 
-		const maxResults = 100;
+		select += " ORDER BY time ASC LIMIT ? OFFSET ? ";
+		params.push(100);
 
-		select += " ORDER BY time DESC LIMIT ? OFFSET ? ";
-		params.push(maxResults);
 		query.offset = parseInt(query.offset, 10) || 0;
 		params.push(query.offset);
 
 		return new Promise((resolve, reject) => {
-			this.database.all(select, params, (err, rows) => {
-				if (err) {
-					reject(err);
-				} else {
-					const response = {
-						searchTerm: query.searchTerm,
-						target: query.channelName,
-						networkUuid: query.networkUuid,
-						offset: query.offset,
-						results: parseSearchRowsToMessages(query.offset, rows),
-					};
-					resolve(response);
-				}
-			});
+			try {
+				resolve({
+					searchTerm: query.searchTerm,
+					target: query.channelName,
+					networkUuid: query.networkUuid,
+					offset: query.offset,
+					results: this.database
+						.prepare(select)
+						.all(params)
+						.map(this._messageParser(false, query.offset)),
+				});
+			} catch (error) {
+				return reject(error);
+			}
 		});
 	}
 
-	canProvideMessages() {
-		return this.isEnabled;
+	_messageParser(useClientId, start) {
+		return (row) => {
+			const msg = JSON.parse(row.msg);
+			msg.time = row.time;
+			msg.type = row.type;
+			msg.networkUuid = row.network;
+			msg.channelName = row.channel;
+
+			if (useClientId) {
+				msg.id = this.client.idMsg++;
+			} else {
+				msg.id = start++;
+			}
+
+			return new Msg(msg);
+		};
 	}
 }
 
 module.exports = MessageStorage;
-
-function parseSearchRowsToMessages(id, rows) {
-	const messages = [];
-
-	for (const row of rows) {
-		const msg = JSON.parse(row.msg);
-		msg.time = row.time;
-		msg.type = row.type;
-		msg.networkUuid = row.network;
-		msg.channelName = row.channel;
-		msg.id = id;
-		messages.push(new Msg(msg));
-		id += 1;
-	}
-
-	return messages;
-}

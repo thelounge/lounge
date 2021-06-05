@@ -124,7 +124,7 @@ export default {
 				return [];
 			}
 
-			return this.search.results.slice().reverse();
+			return this.search.results.slice();
 		},
 		chan() {
 			const chanId = parseInt(this.$route.params.id, 10);
