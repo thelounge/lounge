@@ -102,7 +102,7 @@
     "postcss-loader": "5.0.0",
     "postcss-preset-env": "6.7.0",
     "prettier": "2.2.1",
-    "pretty-quick": "3.1.0",
+    "pretty-quick": "3.1.1",
     "primer-tooltips": "2.0.0",
     "sinon": "9.2.4",
     "socket.io-client": "3.1.1",
