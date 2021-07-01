@@ -61,7 +61,7 @@
     "read": "1.0.7",
     "read-chunk": "3.2.0",
     "semver": "7.3.4",
-    "sharp": "0.28.0",
+    "sharp": "0.28.3",
     "socket.io": "3.1.2",
     "tlds": "1.216.0",
     "ua-parser-js": "0.7.24",
