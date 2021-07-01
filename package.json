@@ -52,7 +52,7 @@
     "got": "11.8.1",
     "irc-framework": "4.11.0",
     "is-utf8": "0.2.1",
-    "ldapjs": "2.2.3",
+    "ldapjs": "2.3.0",
     "linkify-it": "3.0.2",
     "lodash": "4.17.21",
     "mime-types": "2.1.28",
