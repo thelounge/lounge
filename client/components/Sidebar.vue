@@ -102,6 +102,10 @@ export default {
 		this.menuWidth = 0;
 		this.menuIsMoving = false;
 		this.menuIsAbsolute = false;
+		// 0: menu; 1: userlist, 2: both
+		this.controlCode = 0;
+		this.userlistWidth = 0;
+		this.userlistVisibleWidth = 0;
 
 		this.onTouchStart = (e) => {
 			this.touchStartPos = this.touchCurPos = e.touches.item(0);
@@ -112,9 +116,28 @@ export default {
 			}
 
 			const styles = window.getComputedStyle(this.$refs.sidebar);
+			const userlist = document.getElementsByClassName("userlist")[0];
 
 			this.menuWidth = parseFloat(styles.width);
 			this.menuIsAbsolute = styles.position === "absolute";
+
+			// Compute the width of the userlist
+			if (userlist) {
+				const userlistStyles = window.getComputedStyle(userlist);
+				this.userlistWidth = parseFloat(userlistStyles.width);
+			}
+
+			// If the userlist does not exist, control the menu
+			// If the menu is open, control the menu
+			if (!userlist || this.$store.state.sidebarOpen) {
+				this.controlCode = 0;
+			} else if (this.$store.state.userlistOpen) {
+				// If the menu is closed and the userlist is open, control the userlist
+				this.controlCode = 1;
+			} else {
+				// If the menu and the userlist are closed, control both
+				this.controlCode = 2;
+			}
 
 			if (!this.$store.state.sidebarOpen || this.touchStartPos.screenX > this.menuWidth) {
 				this.touchStartTime = Date.now();
@@ -151,18 +174,47 @@ export default {
 				return;
 			}
 
-			if (this.$store.state.sidebarOpen) {
-				distX += this.menuWidth;
-			}
+			switch (this.controlCode) {
+				// control the menu
+				case 0:
+					if (this.$store.state.sidebarOpen) {
+						distX += this.menuWidth;
+					}
 
-			if (distX > this.menuWidth) {
-				distX = this.menuWidth;
-			} else if (distX < 0) {
-				distX = 0;
-			}
+					if (distX > this.menuWidth) {
+						distX = this.menuWidth;
+					} else if (distX < 0) {
+						distX = 0;
+					}
 
-			this.$refs.sidebar.style.transform = "translate3d(" + distX + "px, 0, 0)";
-			this.overlay.style.opacity = distX / this.menuWidth;
+					this.$refs.sidebar.style.transform = "translate3d(" + distX + "px, 0, 0)";
+					this.overlay.style.opacity = distX / this.menuWidth;
+					break;
+				// control the userlist
+				case 1:
+					this.$refs.sidebar.style.transform = "translate3d(0px, 0, 0)";
+					this.overlay.style.opacity = 0;
+					this.$store.commit("userlistOpen", distX <= this.userlistWidth / 2);
+					break;
+				// control both
+				case 2:
+					if (distX < 0) {
+						const userlistDist = -1 * distX;
+						const userlistOpen = userlistDist > this.userlistWidth / 2;
+						this.$store.commit("userlistOpen", userlistOpen);
+					} else {
+						if (distX > this.menuWidth) {
+							distX = this.menuWidth;
+						}
+
+						this.$refs.sidebar.style.transform = "translate3d(" + distX + "px, 0, 0)";
+						this.overlay.style.opacity = distX / this.menuWidth;
+					}
+
+					break;
+				default:
+					break;
+			}
 		};
 
 		this.onTouchEnd = () => {
@@ -170,8 +222,9 @@ export default {
 			const absDiff = Math.abs(diff);
 
 			if (
-				absDiff > this.menuWidth / 2 ||
-				(Date.now() - this.touchStartTime < 180 && absDiff > 50)
+				this.controlCode !== 1 &&
+				(absDiff > this.menuWidth / 2 ||
+					(Date.now() - this.touchStartTime < 180 && absDiff > 50))
 			) {
 				this.toggle(diff > 0);
 			}
