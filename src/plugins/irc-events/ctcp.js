@@ -20,6 +20,36 @@ module.exports = function (irc, network) {
 	const client = this;
 	const lobby = network.channels[0];
 
+	const ctcpResponseActions = {
+		PING: pingResponse,
+	};
+
+	function pingResponse({message, nick, target, time}, chan) {
+		const match = message.substring(5).match(/\d+/);
+
+		if (
+			!match ||
+			(client.expectedPings.includes(nick) && match[0] !== client.expectedPings[nick]) ||
+			nick === irc.user.nick ||
+			target !== irc.user.nick
+		) {
+			return;
+		}
+
+		delete client.expectedPings[nick];
+
+		const text = `PING ${(Date.now() - parseInt(match)) / 1000}s`;
+
+		const msg = new Msg({
+			type: Msg.Type.CTCP,
+			time: time,
+			from: chan.getUser(nick),
+			ctcpMessage: text,
+		});
+		chan.pushMessage(client, msg, true);
+		return true;
+	}
+
 	irc.on("ctcp response", function (data) {
 		const shouldIgnore = network.ignoreList.some(function (entry) {
 			return Helper.compareHostmask(entry, data);
@@ -33,6 +63,13 @@ module.exports = function (irc, network) {
 
 		if (typeof chan === "undefined") {
 			chan = lobby;
+		}
+
+		const action = ctcpResponseActions[data.type];
+		const prventFurtherAction = action ? action(data, chan) : null;
+
+		if (prventFurtherAction) {
+			return;
 		}
 
 		const msg = new Msg({

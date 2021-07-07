@@ -635,6 +635,24 @@
 
 			<div class="help-item">
 				<div class="subject">
+					<code>/ping nick</code>
+				</div>
+				<div class="description">
+					<p>
+						Send a <abbr title="Client-to-client protocol">CTCP</abbr> PING request and
+						calculate delay between the clients. Read more about CTCP PING in this
+						<a
+							href="https://en.wikipedia.org/wiki/Client-to-client_protocol#PING"
+							target="_blank"
+							rel="noopener"
+							>Wikipedia article</a
+						>.
+					</p>
+				</div>
+			</div>
+
+			<div class="help-item">
+				<div class="subject">
 					<code>/rejoin</code>
 				</div>
 				<div class="description">

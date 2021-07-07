@@ -64,6 +64,7 @@ function Client(manager, name, config = {}) {
 		highlightRegex: null,
 		highlightExceptionRegex: null,
 		messageProvider: undefined,
+		expectedPings: {},
 	});
 
 	const client = this;
