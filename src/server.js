@@ -132,6 +132,7 @@ module.exports = function (options = {}) {
 	}
 
 	let listenParams;
+	const socketPermissions = Helper.config.socketPermissions;
 
 	if (typeof Helper.config.host === "string" && Helper.config.host.startsWith("unix:")) {
 		listenParams = Helper.config.host.replace(/^unix:/, "");
@@ -140,12 +141,20 @@ module.exports = function (options = {}) {
 			port: Helper.config.port,
 			host: Helper.config.host,
 		};
+
+		if (socketPermissions !== undefined) {
+			log.warn("socketPermissions has no effect when a HTTP(S) socket is used.");
+		}
 	}
 
 	server.on("error", (err) => log.error(`${err}`));
 
 	server.listen(listenParams, () => {
 		if (typeof listenParams === "string") {
+			if (socketPermissions !== undefined) {
+				fs.chmodSync(listenParams, socketPermissions);
+			}
+
 			log.info("Available on socket " + colors.green(listenParams));
 		} else {
 			const protocol = Helper.config.https.enable ? "https" : "http";

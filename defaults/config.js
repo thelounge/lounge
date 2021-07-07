@@ -35,6 +35,18 @@ module.exports = {
 	// This value is set to `9000` by default.
 	port: 9000,
 
+	// ### `socketPermissions`
+	//
+	// Set the permissions for the UNIX domain socket. Ignored when `host` is set
+	// to an IP address or hostname.
+	// When the value is not set (i.e. `undefined`) the permissions will not be
+	// changed and will default to whatever permissions the operating system uses.
+	//
+	// Example: Set this to `0o660` to allow read/write access for the owner and
+	//          the group and disallow access for anyone else.
+	//
+	socketPermissions: undefined,
+
 	// ### `bind`
 	//
 	// Set the local IP to bind to for outgoing connections.
