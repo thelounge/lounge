@@ -17,7 +17,7 @@ socket.on("quit", function (data) {
 	}
 
 	if (store.state.networks.length > 0) {
-		switchToChannel(store.state.networks[0].channels[0]);
+		switchToChannel(store.state.networks[0], store.state.networks[0].channels[0]);
 	} else {
 		navigate("Connect");
 	}

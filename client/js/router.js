@@ -61,7 +61,7 @@ const router = new VueRouter({
 		},
 		{
 			name: "RoutedChat",
-			path: "/chan-:id",
+			path: "/:networkHost/:channelName?",
 			component: RoutedChat,
 		},
 		{
@@ -94,9 +94,57 @@ router.beforeEach((to, from, next) => {
 		return;
 	}
 
-	// Disallow navigating to invalid channels
-	if (to.name === "RoutedChat" && !store.getters.findChannel(Number(to.params.id))) {
-		next(false);
+	// If trying to navigate to an invalid channel,
+	// we attempt to either open a connection dialog to the network
+	// or populate the Join Channel field in the existing network.
+	if (to.name === "RoutedChat") {
+		let channel = to.hash;
+		const {networkHost, channelName} = to.params;
+
+		// If the channel isn't provided as the hash, check if it's provided as the next param
+		if (!channel) {
+			if (channelName) {
+				channel = channelName;
+			}
+		}
+
+		if (store.getters.findChannelByName(networkHost, channel)) {
+			next();
+			return;
+		}
+
+		const existingNetwork = store.state.networks.find(
+			(network) => network.host === to.params.networkHost
+		);
+
+		if (existingNetwork) {
+			// Join Channel UI
+
+			const activeChannel = store.state.activeChannel;
+
+			// if the active channel is in the network, send the user back to that channel, else to the lobby
+			if (activeChannel && activeChannel.network.uuid === existingNetwork.uuid) {
+				next({
+					path: `/${to.params.networkHost}/${encodeURIComponent(
+						activeChannel.channel.name
+					)}`,
+					query: {channel},
+				});
+				return;
+			}
+
+			next({
+				path: `/${to.params.networkHost}/${existingNetwork.name}`,
+				query: {channel},
+			});
+			return;
+		}
+
+		// Connect UI
+		next({
+			path: "/connect",
+			query: {...to.query, host: to.params.networkHost, channels: to.params.channelName},
+		});
 		return;
 	}
 
@@ -160,8 +208,8 @@ function navigate(routeName, params = {}) {
 	}
 }
 
-function switchToChannel(channel) {
-	return navigate("RoutedChat", {id: channel.id});
+function switchToChannel(network, channel) {
+	return navigate("RoutedChat", {networkHost: network.host, channelName: channel.name});
 }
 
 if ("serviceWorker" in navigator) {
@@ -172,7 +220,7 @@ if ("serviceWorker" in navigator) {
 			const channelTarget = store.getters.findChannel(id);
 
 			if (channelTarget) {
-				switchToChannel(channelTarget.channel);
+				switchToChannel(channelTarget.network, channelTarget.channel);
 			}
 		}
 	});

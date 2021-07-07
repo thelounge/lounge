@@ -204,7 +204,6 @@ describe("Chan", function () {
 
 		it("should keep necessary properties", function () {
 			const chan = new Chan();
-
 			expect(chan.getFilteredClone())
 				.to.be.an("object")
 				.that.has.all.keys(

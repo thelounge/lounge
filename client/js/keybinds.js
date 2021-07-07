@@ -85,30 +85,32 @@ Mousetrap.bind(["alt+a"], function (e) {
 		return true;
 	}
 
-	let targetChannel;
+	let targetNetwork, targetChannel;
 
 	outer_loop: for (const network of store.state.networks) {
 		for (const chan of network.channels) {
 			if (chan.highlight) {
 				targetChannel = chan;
+				targetNetwork = network;
 				break outer_loop;
 			}
 
 			if (chan.unread && !targetChannel) {
 				targetChannel = chan;
+				targetNetwork = network;
 			}
 		}
 	}
 
 	if (targetChannel) {
-		jumpToChannel(targetChannel);
+		jumpToChannel(targetNetwork, targetChannel);
 	}
 
 	return false;
 });
 
-function jumpToChannel(targetChannel) {
-	switchToChannel(targetChannel);
+function jumpToChannel(targetNetwork, targetChannel) {
+	switchToChannel(targetNetwork, targetChannel);
 
 	const element = document.querySelector(
 		`#sidebar .channel-list-item[aria-controls="#chan-${targetChannel.id}"]`

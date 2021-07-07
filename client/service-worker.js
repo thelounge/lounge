@@ -129,7 +129,7 @@ function showNotification(event, payload) {
 	event.waitUntil(
 		self.registration
 			.getNotifications({
-				tag: `chan-${payload.chanId}`,
+				tag: `${payload.networkHost}/${payload.channelName}`,
 			})
 			.then((notifications) => {
 				for (const notification of notifications) {
@@ -137,7 +137,7 @@ function showNotification(event, payload) {
 				}
 
 				return self.registration.showNotification(payload.title, {
-					tag: `chan-${payload.chanId}`,
+					tag: `${payload.networkHost}/${payload.channelName}`,
 					badge: "img/icon-alerted-black-transparent-bg-72x72px.png",
 					icon: "img/icon-alerted-grey-bg-192x192px.png",
 					body: payload.body,

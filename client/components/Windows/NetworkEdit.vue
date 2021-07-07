@@ -43,7 +43,7 @@ export default {
 			const network = this.$store.getters.findNetwork(data.uuid);
 			network.name = network.channels[0].name = data.name;
 
-			this.$root.switchToChannel(network.channels[0]);
+			this.$root.switchToChannel(network, network.channels[0]);
 		},
 	},
 };

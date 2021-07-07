@@ -20,5 +20,7 @@ socket.on("join", function (data) {
 		return;
 	}
 
-	switchToChannel(store.getters.findChannel(data.chan.id).channel);
+	const channel = store.getters.findChannel(data.chan.id);
+
+	switchToChannel(channel.network, channel.channel);
 });

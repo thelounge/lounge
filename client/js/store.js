@@ -161,6 +161,23 @@ const store = new Vuex.Store({
 
 			return null;
 		},
+		findChannelByName: (state) => (networkHost, channelName) => {
+			if (!networkHost || !channelName) {
+				return undefined;
+			}
+
+			for (const network of state.networks) {
+				if (network.host.toLowerCase() === networkHost.toLowerCase()) {
+					for (const channel of network.channels) {
+						if (channel.name.toLowerCase() === channelName.toLowerCase()) {
+							return {network, channel};
+						}
+					}
+				}
+			}
+
+			return null;
+		},
 		findNetwork: (state) => (uuid) => {
 			for (const network of state.networks) {
 				if (network.uuid === uuid) {

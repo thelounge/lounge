@@ -253,7 +253,15 @@ describe("Network", function () {
 
 			expect(clone)
 				.to.be.an("object")
-				.that.has.all.keys("channels", "status", "nick", "name", "serverOptions", "uuid");
+				.that.has.all.keys(
+					"channels",
+					"status",
+					"nick",
+					"name",
+					"serverOptions",
+					"uuid",
+					"host"
+				);
 
 			expect(clone.status).to.be.an("object").that.has.all.keys("connected", "secure");
 		});

@@ -18,8 +18,10 @@ export default {
 	},
 	computed: {
 		activeChannel() {
-			const chanId = parseInt(this.$route.params.id, 10);
-			const channel = this.$store.getters.findChannel(chanId);
+			const channel = this.$store.getters.findChannelByName(
+				this.$route.params.networkHost,
+				this.$route.params.channelName
+			);
 			return channel;
 		},
 	},

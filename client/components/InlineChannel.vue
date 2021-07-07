@@ -17,7 +17,7 @@ export default {
 			const existingChannel = this.$store.getters.findChannelOnCurrentNetwork(this.channel);
 
 			if (existingChannel) {
-				this.$root.switchToChannel(existingChannel);
+				this.$root.switchToChannel(this.$store.activeChannel.network, existingChannel);
 			}
 
 			socket.emit("input", {

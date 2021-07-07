@@ -7,7 +7,7 @@ import Vue from "vue";
 import store from "./store";
 import App from "../components/App.vue";
 import storage from "./localStorage";
-import {router, navigate} from "./router";
+import {router, switchToChannel} from "./router";
 import socket from "./socket";
 import eventbus from "./eventbus";
 
@@ -26,8 +26,8 @@ new Vue({
 		socket.open();
 	},
 	methods: {
-		switchToChannel(channel) {
-			navigate("RoutedChat", {id: channel.id});
+		switchToChannel(network, channel) {
+			switchToChannel(network, channel);
 		},
 		closeChannel(channel) {
 			if (channel.type === "lobby") {
