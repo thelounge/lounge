@@ -18,6 +18,7 @@ const Identification = require("./identification");
 const changelog = require("./plugins/changelog");
 const inputs = require("./plugins/inputs");
 const Auth = require("./plugins/auth");
+const ClientCertificate = require("./plugins/clientCertificate");
 
 const themes = require("./plugins/packages/themes");
 themes.loadLocalThemes();
@@ -416,6 +417,26 @@ function initializeClient(socket, client, token, lastMessage, openChannel) {
 		}
 
 		network.edit(client, data);
+	});
+
+	socket.on("network:quit", (data) => {
+		if (!_.isPlainObject(data)) {
+			return;
+		}
+
+		const network = _.find(client.networks, {uuid: data.uuid});
+
+		client.networks = _.without(client.networks, network);
+		network.destroy();
+		client.save();
+		client.emit("quit", {
+			network: network.uuid,
+		});
+
+		const quitMessage = data.quitMessage;
+		network.quit(quitMessage);
+
+		ClientCertificate.remove(network.uuid);
 	});
 
 	socket.on("history:clear", (data) => {

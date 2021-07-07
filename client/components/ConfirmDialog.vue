@@ -3,7 +3,7 @@
 		<div v-if="data !== null" id="confirm-dialog">
 			<div class="confirm-text">
 				<div class="confirm-text-title">{{ data.title }}</div>
-				<p>{{ data.text }}</p>
+				<p v-html="data.text"></p>
 			</div>
 			<div class="confirm-buttons">
 				<button class="btn btn-cancel" @click="close(false)">Cancel</button>
@@ -52,6 +52,7 @@
 
 <script>
 import eventbus from "../js/eventbus";
+import socket from "../js/socket";
 
 export default {
 	name: "ConfirmDialog",
@@ -64,13 +65,23 @@ export default {
 	mounted() {
 		eventbus.on("escapekey", this.close);
 		eventbus.on("confirm-dialog", this.open);
+		socket.on("confirm-dialog", this.open);
 	},
 	destroyed() {
 		eventbus.off("escapekey", this.close);
 		eventbus.off("confirm-dialog", this.open);
+		socket.off("confirm-dialog", this.open);
 	},
 	methods: {
 		open(data, callback) {
+			if (data.emit) {
+				callback = (result) => {
+					if (result) {
+						socket.emit(data.emit.target, data.emit.data);
+					}
+				};
+			}
+
 			this.data = data;
 			this.callback = callback;
 		},
