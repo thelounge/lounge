@@ -311,8 +311,22 @@ function completeNicks(word, isFuzzy) {
 	return users.filter((w) => !w.toLowerCase().indexOf(word));
 }
 
+function getCommands() {
+	const cmds = constants.commands.slice();
+
+	if (store.state.settings.searchEnabled === false) {
+		const search = cmds.indexOf("/search");
+
+		if (search !== -1) {
+			cmds.splice(search, 1);
+		}
+	}
+
+	return cmds;
+}
+
 function completeCommands(word) {
-	const words = constants.commands.slice();
+	const words = getCommands();
 
 	return fuzzyGrep(word, words);
 }

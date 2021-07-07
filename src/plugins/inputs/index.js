@@ -1,5 +1,3 @@
-const clientSideCommands = ["/collapse", "/expand", "/search"];
-
 const passThroughCommands = [
 	"/as",
 	"/bs",
@@ -47,7 +45,6 @@ const getCommands = () =>
 	Array.from(userInputs.keys())
 		.concat(Array.from(pluginCommands.keys()))
 		.map((command) => `/${command}`)
-		.concat(clientSideCommands)
 		.concat(passThroughCommands)
 		.sort();
 
