@@ -65,6 +65,27 @@ module.exports = function (irc, network) {
 				return;
 			}
 
+			// Intercept ZNC *buffextras messages and turn them into native messages
+			if (data.type === Msg.Type.MESSAGE && data.nick === "*buffextras") {
+				const joinMatch = data.message.match(/^(.+) joined$/);
+
+				if (joinMatch) {
+					const parsedHostmask = Helper.parseHostmask(joinMatch[1]);
+					irc.emit("join", {
+						nick: parsedHostmask.nick,
+						ident: parsedHostmask.ident,
+						hostname: parsedHostmask.hostname,
+						channel: data.target,
+						gecos: false, // Gets rid of " -" after the hostmask in the web UI
+						account: false, // Ditto "[]" in the same place
+						time: data.time,
+						tags: data.tags,
+					});
+
+					return;
+				}
+			}
+
 			let target = data.target;
 
 			// If the message is targeted at us, use sender as target instead
