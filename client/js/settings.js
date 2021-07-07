@@ -29,6 +29,10 @@ export const config = normalizeConfig({
 	coloredNicks: {
 		default: true,
 	},
+	hidePreviewFilters: {
+		default: "",
+		sync: "always",
+	},
 	desktopNotifications: {
 		default: false,
 		sync: "never",
