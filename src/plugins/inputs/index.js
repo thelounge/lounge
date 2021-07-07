@@ -35,6 +35,7 @@ const userInputs = [
 	"rejoin",
 	"topic",
 	"whois",
+	"mute",
 ].reduce(function (plugins, name) {
 	const plugin = require(`./${name}`);
 	plugin.commands.forEach((command) => plugins.set(command, plugin));

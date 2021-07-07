@@ -97,7 +97,7 @@ module.exports = function (irc, network) {
 
 			from = chan.getUser(data.nick);
 
-			// Query messages (unless self) always highlight
+			// Query messages (unless self or muted) always highlight
 			if (chan.type === Chan.Type.QUERY) {
 				highlight = !self;
 			} else if (chan.type === Chan.Type.CHANNEL) {
@@ -158,8 +158,8 @@ module.exports = function (irc, network) {
 
 		chan.pushMessage(client, msg, !msg.self);
 
-		// Do not send notifications for messages older than 15 minutes (znc buffer for example)
-		if (msg.highlight && (!data.time || data.time > Date.now() - 900000)) {
+		// Do not send notifications if the channel is muted or for messages older than 15 minutes (znc buffer for example)
+		if (!chan.muted && msg.highlight && (!data.time || data.time > Date.now() - 900000)) {
 			let title = chan.name;
 			let body = cleanMessage;
 

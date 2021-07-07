@@ -15,6 +15,7 @@
 					channel.type === 'lobby' && network.status.connected && !network.status.secure,
 			},
 			{'not-connected': channel.type === 'lobby' && !network.status.connected},
+			{'is-muted': channel.muted},
 		]"
 		:aria-label="getAriaLabel()"
 		:title="getAriaLabel()"

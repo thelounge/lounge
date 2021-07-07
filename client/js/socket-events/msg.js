@@ -95,6 +95,10 @@ socket.on("msg", function (data) {
 });
 
 function notifyMessage(targetId, channel, activeChannel, msg) {
+	if (channel.muted) {
+		return;
+	}
+
 	if (msg.highlight || (store.state.settings.notifyAllMessages && msg.type === "message")) {
 		if (!document.hasFocus() || !activeChannel || activeChannel.channel !== channel) {
 			if (store.state.settings.notification) {

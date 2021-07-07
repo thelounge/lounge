@@ -18,12 +18,12 @@ describe("Network", function () {
 				saslAccount: "testaccount",
 				saslPassword: "testpassword",
 				channels: [
-					new Chan({name: "#thelounge", key: ""}),
-					new Chan({name: "&foobar", key: ""}),
-					new Chan({name: "#secret", key: "foo"}),
-					new Chan({name: "&secure", key: "bar"}),
+					new Chan({name: "#thelounge", key: "", muted: false}),
+					new Chan({name: "&foobar", key: "", muted: false}),
+					new Chan({name: "#secret", key: "foo", muted: false}),
+					new Chan({name: "&secure", key: "bar", muted: true}),
 					new Chan({name: "Channel List", type: Chan.Type.SPECIAL}),
-					new Chan({name: "PrivateChat", type: Chan.Type.QUERY}),
+					new Chan({name: "PrivateChat", type: Chan.Type.QUERY, muted: true}),
 				],
 			});
 			network.setNick("chillin`");
@@ -51,11 +51,11 @@ describe("Network", function () {
 				proxyPort: 1080,
 				proxyUsername: "",
 				channels: [
-					{name: "#thelounge", key: ""},
-					{name: "&foobar", key: ""},
-					{name: "#secret", key: "foo"},
-					{name: "&secure", key: "bar"},
-					{name: "PrivateChat", type: "query"},
+					{name: "#thelounge", key: "", muted: false},
+					{name: "&foobar", key: "", muted: false},
+					{name: "#secret", key: "foo", muted: false},
+					{name: "&secure", key: "bar", muted: true},
+					{name: "PrivateChat", type: "query", muted: true},
 				],
 				ignoreList: [],
 			});

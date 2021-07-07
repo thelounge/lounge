@@ -361,6 +361,7 @@ p {
 .context-menu-network::before { content: "\f233"; /* https://fontawesome.com/icons/server?style=solid */ }
 .context-menu-edit::before { content: "\f303"; /* https://fontawesome.com/icons/pencil-alt?style=solid */ }
 .context-menu-clear-history::before { content: "\f1f8"; /* https://fontawesome.com/icons/trash?style=solid */ }
+.context-menu-mute::before { content: "\f6a9"; /* https://fontawesome.com/v5.15/icons/volume-mute?style=solid */ }
 
 .channel-list-item .not-secure-icon::before {
 	content: "\f071"; /* https://fontawesome.com/icons/exclamation-triangle?style=solid */
@@ -783,6 +784,10 @@ background on hover (unless active) */
 .channel-list-item.parted-channel:hover,
 .channel-list-item.parted-channel.active {
 	color: #f1978e;
+}
+
+.channel-list-item.is-muted {
+	opacity: 0.5;
 }
 
 .channel-list-item::before {

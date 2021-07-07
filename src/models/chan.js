@@ -41,6 +41,7 @@ function Chan(attr) {
 		unread: 0,
 		highlight: 0,
 		users: new Map(),
+		muted: attr.muted,
 	});
 }
 
@@ -274,6 +275,10 @@ Chan.prototype.loadMessages = function (client, network) {
 
 Chan.prototype.isLoggable = function () {
 	return this.type === Chan.Type.CHANNEL || this.type === Chan.Type.QUERY;
+};
+
+Chan.prototype.setMuteStatus = function (muted) {
+	this.muted = !!muted;
 };
 
 function requestZncPlayback(channel, network, from) {

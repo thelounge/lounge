@@ -170,6 +170,20 @@ export function generateChannelContextMenu($root, channel, network) {
 		});
 	}
 
+	// The entire network is muted if the lobby is selected
+	const humanFriendlyChanType = channel.type === "lobby" ? "network" : channel.type;
+	items.push({
+		label: channel.muted ? `Unmute ${humanFriendlyChanType}` : `Mute ${humanFriendlyChanType}`,
+		type: "item",
+		class: "mute",
+		action() {
+			socket.emit("mute:change", {
+				target: channel.id,
+				setMutedTo: !channel.muted,
+			});
+		},
+	});
+
 	// Add close menu item
 	items.push({
 		label: closeMap[channel.type],

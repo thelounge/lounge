@@ -124,7 +124,7 @@ function Client(manager, name, config = {}) {
 	});
 
 	(client.config.networks || []).forEach((network) => client.connect(network, true));
-
+	// console.log(JSON.stringify(client.config.networks));
 	// Networks are stored directly in the client object
 	// We don't need to keep it in the config object
 	delete client.config.networks;
@@ -206,6 +206,7 @@ Client.prototype.connect = function (args, isStartup = false) {
 					name: chan.name,
 					key: chan.key || "",
 					type: chan.type,
+					muted: chan.muted,
 				})
 			);
 		});
