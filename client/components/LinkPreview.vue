@@ -48,6 +48,7 @@
 							:aria-label="moreButtonLabel"
 							dir="auto"
 							class="more"
+							type="button"
 							@click="onMoreClick"
 						>
 							<span class="more-caret" />
@@ -119,6 +120,7 @@
 						:aria-expanded="isContentShown"
 						:aria-label="moreButtonLabel"
 						class="more"
+						type="button"
 						@click="onMoreClick"
 					>
 						<span class="more-caret" />

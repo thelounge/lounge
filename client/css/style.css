@@ -318,7 +318,7 @@ p {
 #chat .msg-statusmsg span::before,
 #chat .msg-shown-in-active span::before,
 #chat .toggle-button::after,
-#chat .toggle-content .more-caret::before,
+.preview .toggle-content .more-caret::before,
 #chat .scroll-down-arrow::after,
 #chat .topic-container .save-topic span::before,
 #version-checker::before,
@@ -639,6 +639,7 @@ p {
 #sidebar {
 	display: none;
 	flex-direction: column;
+	flex-shrink: 0;
 	width: 220px;
 	max-height: 100%;
 	will-change: transform;
@@ -1543,22 +1544,23 @@ textarea.input {
 	border-left: 1px solid var(--highlight-bg-color);
 }
 
-#chat .preview-size {
+.preview-size {
 	margin-left: 5px;
 	user-select: none;
 }
 
-#chat .toggle-content.opened .more-caret, /* Expand/Collapse link previews */
-#chat .toggle-button.opened, /* Thumbnail toggle */
-#chat .msg:not(.closed)[data-type="condensed"] .toggle-button { /* Expanded status message toggle */
+.preview .toggle-content.opened .more-caret, /* Expand/Collapse link previews */
+.preview .toggle-button.opened, /* Thumbnail toggle */
+.msg:not(.closed)[data-type="condensed"] .preview .toggle-button { /* Expanded status message toggle */
 	transform: rotate(90deg);
 }
 
-#chat .preview {
+.preview {
 	display: flex; /* Fix odd margin added by inline-flex in .toggle-content */
+	user-select: text;
 }
 
-#chat .toggle-content {
+.preview .toggle-content {
 	background: #f6f6f6;
 	border-radius: 5px;
 	max-width: 100%;
@@ -1572,111 +1574,111 @@ textarea.input {
 }
 
 /* This applies to images of preview-type-image and thumbnails of preview-type-link */
-#chat .toggle-content img {
+.preview .toggle-content img {
 	max-width: 100%;
 	max-height: 128px;
 	display: block;
 	cursor: zoom-in;
 }
 
-#chat .toggle-content pre.prefetch-error {
+.preview .toggle-content pre.prefetch-error {
 	padding: 0;
 	margin: 0;
 	color: inherit;
 	background-color: transparent;
 }
 
-#chat .toggle-content .prefetch-error {
+.preview .toggle-content .prefetch-error {
 	display: none;
 }
 
-#chat .toggle-content.opened .prefetch-error {
+.preview .toggle-content.opened .prefetch-error {
 	display: inline;
 }
 
 /* This applies to thumbnails of preview-type-link only */
-#chat .toggle-content .thumb {
+.preview .toggle-content .thumb {
 	max-height: 54px;
 	max-width: 96px;
 }
 
-#chat .toggle-type-error,
-#chat .toggle-content .toggle-text {
+.preview .toggle-type-error,
+.preview .toggle-content .toggle-text {
 	padding: 8px 10px;
 }
 
-#chat .toggle-content .toggle-text {
+.preview .toggle-content .toggle-text {
 	white-space: nowrap;
 	overflow: hidden;
 	text-align: initial;
 }
 
-#chat .toggle-content.opened .toggle-text {
+.preview .toggle-content.opened .toggle-text {
 	white-space: normal;
 }
 
-#chat .toggle-content .head {
+.preview .toggle-content .head {
 	display: flex;
 	align-items: flex-start;
 	font-weight: bold;
 }
 
-#chat .toggle-type-error,
-#chat .toggle-text .body {
+.preview .toggle-type-error,
+.preview .toggle-text .body {
 	color: #717171;
 }
 
-#chat .toggle-text a {
+.preview .toggle-text a {
 	color: inherit;
 }
 
-#chat .toggle-text .overflowable {
+.preview .toggle-text .overflowable {
 	text-overflow: ellipsis;
 	overflow: hidden;
 	flex-grow: 1;
 }
 
-#chat .toggle-content .more {
+.preview .toggle-content .more {
 	color: var(--link-color);
 	font-weight: normal;
 	margin-left: 10px;
 	flex-shrink: 0;
 }
 
-#chat .toggle-content .more:hover {
+.preview .toggle-content .more:hover {
 	text-decoration: underline;
 }
 
-#chat .toggle-content .more::after {
+.preview .toggle-content .more::after {
 	content: " " attr(aria-label);
 }
 
-#chat .toggle-content .more-caret {
+.preview .toggle-content .more-caret {
 	display: inline-block;
 	transition: transform 0.2s;
 }
 
-#chat .toggle-content .more-caret::before {
+.preview .toggle-content .more-caret::before {
 	content: "\f0da"; /* https://fontawesome.com/icons/caret-right?style=solid */
 }
 
-#chat audio {
+.preview audio {
 	width: 600px;
 	max-width: 100%;
 }
 
-#chat .toggle-type-video {
+.preview .toggle-type-video {
 	max-width: 640px;
 }
 
-#chat video {
+.preview video {
 	max-width: 100%;
 	max-height: 240px;
 }
 
 /* Do not display an empty div when there are no previews. Useful for example in
 part/quit messages where we don't load previews (adds a blank line otherwise) */
-#chat .preview:empty {
+.preview:empty {
 	display: none;
 }
 
@@ -2158,6 +2160,40 @@ part/quit messages where we don't load previews (adds a blank line otherwise) */
 	display: flex;
 	align-items: flex-end;
 	position: relative;
+	flex-wrap: wrap;
+}
+
+#input-previews {
+	width: 100%;
+	border-bottom: 1px solid #e7e7e7;
+	padding-bottom: 6px;
+	margin-bottom: 6px;
+	display: flex;
+	flex-wrap: wrap;
+}
+
+#input-previews .preview {
+	max-width: calc(25% - 10px);
+	margin: 5px;
+	flex: 0 0 auto;
+	height: auto;
+	max-height: 128px;
+}
+
+@media (max-width: 768px) {
+	#input-previews .preview {
+		max-width: calc(50% - 10px);
+	}
+}
+
+@media (max-width: 479px) {
+	#input-previews .preview {
+		max-width: calc(100% - 10px);
+	}
+}
+
+#input-previews .toggle-content {
+	margin: 0;
 }
 
 #user-visible-error {
@@ -2646,7 +2682,7 @@ part/quit messages where we don't load previews (adds a blank line otherwise) */
 		padding-left: 6px;
 	}
 
-	#chat .toggle-content .thumb {
+	.preview .toggle-content .thumb {
 		max-height: 58px;
 		max-width: 104px;
 	}

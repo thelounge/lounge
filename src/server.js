@@ -18,6 +18,7 @@ const Identification = require("./identification");
 const changelog = require("./plugins/changelog");
 const inputs = require("./plugins/inputs");
 const Auth = require("./plugins/auth");
+const LinkPrefetch = require("./plugins/irc-events/link");
 
 const themes = require("./plugins/packages/themes");
 themes.loadLocalThemes();
@@ -366,6 +367,18 @@ function initializeClient(socket, client, token, lastMessage, openChannel) {
 	socket.on("input", (data) => {
 		if (_.isPlainObject(data)) {
 			client.input(data);
+		}
+	});
+
+	socket.on("input:preview", (data) => {
+		if (_.isPlainObject(data)) {
+			const chan = client.find(data.target);
+			LinkPrefetch(client, chan, {}, data.links, (a, b, c, preview) => {
+				socket.emit("input:preview", {
+					target: data.target,
+					preview: preview,
+				});
+			});
 		}
 	});
 

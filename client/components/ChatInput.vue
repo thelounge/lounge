@@ -1,5 +1,14 @@
 <template>
 	<form id="form" method="post" action="" @submit.prevent="onSubmit">
+		<div v-if="channel.pendingMessagePreviews.length > 0" id="input-previews">
+			<LinkPreview
+				v-for="preview in channel.pendingMessagePreviews"
+				:key="preview.link"
+				:keep-scroll-position="() => {}"
+				:link="preview"
+				:channel="channel"
+			/>
+		</div>
 		<span id="upload-progressbar" />
 		<span id="nick">{{ network.nick }}</span>
 		<textarea
@@ -59,6 +68,9 @@ import commands from "../js/commands/index";
 import socket from "../js/socket";
 import upload from "../js/upload";
 import eventbus from "../js/eventbus";
+import {findLinks} from "../js/helpers/ircmessageparser/findLinks";
+import throttle from "lodash/throttle";
+import LinkPreview from "./LinkPreview.vue";
 
 const formattingHotkeys = {
 	"mod+k": "\x03",
@@ -89,6 +101,9 @@ let autocompletionRef = null;
 
 export default {
 	name: "ChatInput",
+	components: {
+		LinkPreview,
+	},
 	props: {
 		network: Object,
 		channel: Object,
@@ -101,10 +116,14 @@ export default {
 		},
 		"channel.pendingMessage"() {
 			this.setInputSize();
+			this.requestLinkPreview();
 		},
 	},
 	mounted() {
 		eventbus.on("escapekey", this.blurInput);
+		this.setInputSize();
+
+		this.requestLinkPreview = throttle(this._requestLinkPreview, 1500);
 
 		if (this.$store.state.settings.autocomplete) {
 			autocompletionRef = autocompletion(this.$refs.input);
@@ -207,6 +226,26 @@ export default {
 		upload.abort();
 	},
 	methods: {
+		_requestLinkPreview() {
+			const links = findLinks(this.channel.pendingMessage);
+			const rawLinks = links.map((obj) => obj.link);
+			const currentLinks = this.channel.pendingMessagePreviews.map((obj) => obj.link);
+			const toRequest = links.filter((link) => !currentLinks.includes(link.link));
+			this.channel.pendingMessagePreviews = this.channel.pendingMessagePreviews.filter(
+				(preview) => rawLinks.includes(preview.link)
+			);
+
+			if (toRequest.length === 0) {
+				return;
+			}
+
+			while (toRequest.length > 0) {
+				socket.emit("input:preview", {
+					links: toRequest.splice(0, 4),
+					target: this.channel.id,
+				});
+			}
+		},
 		setPendingMessage(e) {
 			this.channel.pendingMessage = e.target.value;
 			this.channel.inputHistoryPosition = 0;
@@ -262,6 +301,7 @@ export default {
 
 			this.channel.inputHistoryPosition = 0;
 			this.channel.pendingMessage = "";
+			this.channel.pendingMessagePreviews = [];
 			this.$refs.input.value = "";
 			this.setInputSize();
 

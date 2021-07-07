@@ -11,12 +11,18 @@ const currentFetchPromises = new Map();
 const imageTypeRegex = /^image\/.+/;
 const mediaTypeRegex = /^(audio|video)\/.+/;
 
-module.exports = function (client, chan, msg, cleanText) {
+module.exports = function (client, chan, msg, cleanTextOrLinks, callback) {
 	if (!Helper.config.prefetch) {
 		return;
 	}
 
-	msg.previews = findLinksWithSchema(cleanText).reduce((cleanLinks, link) => {
+	let links = cleanTextOrLinks;
+
+	if (typeof links === "string") {
+		links = findLinksWithSchema(cleanTextOrLinks);
+	}
+
+	msg.previews = links.reduce((cleanLinks, link) => {
 		const url = normalizeURL(link.link);
 
 		// If the URL is invalid and cannot be normalized, don't fetch it
@@ -51,13 +57,13 @@ module.exports = function (client, chan, msg, cleanText) {
 			language: client.config.browser.language,
 		})
 			.then((res) => {
-				parse(msg, chan, preview, res, client);
+				parse(msg, chan, preview, res, client, callback);
 			})
 			.catch((err) => {
 				preview.type = "error";
 				preview.error = "message";
 				preview.message = err.message;
-				emitPreview(client, chan, msg, preview);
+				finishUp(client, chan, msg, preview, callback);
 			});
 
 		return cleanLinks;
@@ -202,7 +208,7 @@ function parseHtmlMedia($, preview, client) {
 	});
 }
 
-function parse(msg, chan, preview, res, client) {
+function parse(msg, chan, preview, res, client, callback) {
 	let promise;
 
 	preview.size = res.size;
@@ -288,19 +294,19 @@ function parse(msg, chan, preview, res, client) {
 	}
 
 	if (!promise) {
-		return handlePreview(client, chan, msg, preview, res);
+		return handlePreview(client, chan, msg, preview, res, callback);
 	}
 
-	promise.then((newRes) => handlePreview(client, chan, msg, preview, newRes));
+	promise.then((newRes) => handlePreview(client, chan, msg, preview, newRes, callback));
 }
 
-function handlePreview(client, chan, msg, preview, res) {
+function handlePreview(client, chan, msg, preview, res, callback) {
 	const thumb = preview.thumbActualUrl || "";
 	delete preview.thumbActualUrl;
 
 	if (!thumb.length || !Helper.config.prefetchStorage) {
 		preview.thumb = thumb;
-		return emitPreview(client, chan, msg, preview);
+		return finishUp(client, chan, msg, preview, callback);
 	}
 
 	// Get the correct file extension for the provided content-type
@@ -314,17 +320,17 @@ function handlePreview(client, chan, msg, preview, res) {
 			return removePreview(msg, preview);
 		}
 
-		return emitPreview(client, chan, msg, preview);
+		return finishUp(client, chan, msg, preview, callback);
 	}
 
 	storage.store(res.data, extension, (uri) => {
 		preview.thumb = uri;
 
-		emitPreview(client, chan, msg, preview);
+		finishUp(client, chan, msg, preview, callback);
 	});
 }
 
-function emitPreview(client, chan, msg, preview) {
+function finishUp(client, chan, msg, preview, callback) {
 	// If there is no title but there is preview or description, set title
 	// otherwise bail out and show no preview
 	if (!preview.head.length && preview.type === "link") {
@@ -335,11 +341,15 @@ function emitPreview(client, chan, msg, preview) {
 		}
 	}
 
-	client.emit("msg:preview", {
-		id: msg.id,
-		chan: chan.id,
-		preview: preview,
-	});
+	if (callback) {
+		callback(client, chan, msg, preview);
+	} else {
+		client.emit("msg:preview", {
+			id: msg.id,
+			chan: chan.id,
+			preview: preview,
+		});
+	}
 }
 
 function removePreview(msg, preview) {

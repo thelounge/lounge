@@ -4,6 +4,7 @@ import "./connection";
 import "./auth";
 import "./commands";
 import "./init";
+import "./input_preview";
 import "./join";
 import "./more";
 import "./msg";
