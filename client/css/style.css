@@ -1287,6 +1287,10 @@ textarea.input {
 	border-top: 1px solid var(--unread-marker-color);
 }
 
+#chat .unread-marker-text {
+	cursor: pointer;
+}
+
 #chat .unread-marker-text::before {
 	content: "New messages";
 	background-color: var(--window-bg-color);
