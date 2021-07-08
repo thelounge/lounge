@@ -8,7 +8,7 @@ const User = require("../../src/models/user");
 describe("Msg", function () {
 	["from", "target"].forEach((prop) => {
 		it(`should keep a copy of the original user in the \`${prop}\` property`, function () {
-			const prefixLookup = {a: "&", o: "@"};
+			const prefixLookup = {modeToSymbol: {a: "&", o: "@"}};
 			const user = new User(
 				{
 					modes: ["o"],

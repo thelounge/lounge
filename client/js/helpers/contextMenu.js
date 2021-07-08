@@ -252,22 +252,30 @@ export function generateUserContextMenu($root, channel, network, user) {
 		return items;
 	}
 
-	// Names of the modes we are able to change
-	const modes = {
-		"~": ["owner", "q"],
-		"&": ["admin", "a"],
-		"@": ["operator", "o"],
-		"%": ["half-op", "h"],
-		"+": ["voice", "v"],
+	// Names of the standard modes we are able to change
+	const modeCharToName = {
+		"~": "owner",
+		"&": "admin",
+		"@": "operator",
+		"%": "half-op",
+		"+": "voice",
 	};
 
 	// Labels for the mode changes.  For example .rev(['admin', 'a']) => 'Revoke admin (-a)'
 	const modeTextTemplate = {
-		revoke: (m) => `Revoke ${m[0]} (-${m[1]})`,
-		give: (m) => `Give ${m[0]} (+${m[1]})`,
+		revoke(m) {
+			const name = modeCharToName[m.symbol];
+			const res = name ? `Revoke ${name} (-${m.mode})` : `Mode -${m.mode}`;
+			return res;
+		},
+		give(m) {
+			const name = modeCharToName[m.symbol];
+			const res = name ? `Give ${name} (+${m.mode})` : `Mode +${m.mode}`;
+			return res;
+		},
 	};
 
-	const networkModes = network.serverOptions.PREFIX;
+	const networkModeSymbols = network.serverOptions.PREFIX.symbols;
 
 	/**
 	 * Determine whether the prefix of mode p1 has access to perform actions on p2.
@@ -284,38 +292,38 @@ export function generateUserContextMenu($root, channel, network, user) {
 	function compare(p1, p2) {
 		// The modes ~ and @ can perform actions on their own mode.  The others on modes below.
 		return "~@".indexOf(p1) > -1
-			? networkModes.indexOf(p1) <= networkModes.indexOf(p2)
-			: networkModes.indexOf(p1) < networkModes.indexOf(p2);
+			? networkModeSymbols.indexOf(p1) <= networkModeSymbols.indexOf(p2)
+			: networkModeSymbols.indexOf(p1) < networkModeSymbols.indexOf(p2);
 	}
 
-	networkModes.forEach((prefix) => {
-		if (!compare(currentChannelUser.modes[0], prefix)) {
+	network.serverOptions.PREFIX.prefix.forEach((mode) => {
+		if (!compare(currentChannelUser.modes[0], mode.symbol)) {
 			// Our highest mode is below the current mode.  Bail.
 			return;
 		}
 
-		if (!user.modes.includes(prefix)) {
+		if (!user.modes.includes(mode.symbol)) {
 			// The target doesn't already have this mode, therefore we can set it.
 			items.push({
-				label: modeTextTemplate.give(modes[prefix]),
+				label: modeTextTemplate.give(mode),
 				type: "item",
 				class: "action-set-mode",
 				action() {
 					socket.emit("input", {
 						target: channel.id,
-						text: "/mode +" + modes[prefix][1] + " " + user.nick,
+						text: "/mode +" + mode.mode + " " + user.nick,
 					});
 				},
 			});
 		} else {
 			items.push({
-				label: modeTextTemplate.revoke(modes[prefix]),
+				label: modeTextTemplate.revoke(mode),
 				type: "item",
 				class: "action-revoke-mode",
 				action() {
 					socket.emit("input", {
 						target: channel.id,
-						text: "/mode -" + modes[prefix][1] + " " + user.nick,
+						text: "/mode -" + mode.mode + " " + user.nick,
 					});
 				},
 			});
@@ -323,9 +331,9 @@ export function generateUserContextMenu($root, channel, network, user) {
 	});
 
 	// Determine if we are half-op or op depending on the network modes so we can kick.
-	if (!compare(networkModes.indexOf("%") > -1 ? "%" : "@", currentChannelUser.modes[0])) {
+	if (!compare(networkModeSymbols.indexOf("%") > -1 ? "%" : "@", currentChannelUser.modes[0])) {
+		// Check if the target user has no mode or a mode lower than ours.
 		if (user.modes.length === 0 || compare(currentChannelUser.modes[0], user.modes[0])) {
-			// Check if the target user has no mode or a mode lower than ours.
 			items.push({
 				label: "Kick",
 				type: "item",

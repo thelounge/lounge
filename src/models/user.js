@@ -4,7 +4,7 @@ const _ = require("lodash");
 
 module.exports = User;
 
-function User(attr, prefixLookup) {
+function User(attr, prefix) {
 	_.defaults(this, attr, {
 		modes: [],
 		away: "",
@@ -18,12 +18,12 @@ function User(attr, prefixLookup) {
 		},
 	});
 
-	this.setModes(this.modes, prefixLookup);
+	this.setModes(this.modes, prefix);
 }
 
-User.prototype.setModes = function (modes, prefixLookup) {
+User.prototype.setModes = function (modes, prefix) {
 	// irc-framework sets character mode, but The Lounge works with symbols
-	this.modes = modes.map((mode) => prefixLookup[mode]);
+	this.modes = modes.map((mode) => prefix.modeToSymbol[mode]);
 };
 
 User.prototype.toJSON = function () {

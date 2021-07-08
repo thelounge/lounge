@@ -79,7 +79,7 @@ function parse(createElement, text, message = undefined, network = undefined) {
 	// arrays of objects containing start and end markers, as well as metadata
 	// depending on what was found (channel or link).
 	const channelPrefixes = network ? network.serverOptions.CHANTYPES : ["#", "&"];
-	const userModes = network ? network.serverOptions.PREFIX : ["!", "@", "%", "+"];
+	const userModes = network?.serverOptions?.PREFIX.symbols || ["!", "@", "%", "+"];
 	const channelParts = findChannels(cleanText, channelPrefixes, userModes);
 	const linkParts = findLinks(cleanText);
 	const emojiParts = findEmoji(cleanText);

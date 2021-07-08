@@ -107,7 +107,7 @@ module.exports = function (irc, network) {
 				return;
 			}
 
-			const changedMode = network.prefixLookup[char];
+			const changedMode = network.serverOptions.PREFIX.modeToSymbol[char];
 
 			if (!add) {
 				_.pull(user.modes, changedMode);

@@ -20,10 +20,10 @@ describe("Chan", function () {
 		},
 	};
 
-	const prefixLookup = {};
+	const prefixLookup = {modeToSymbol: {}};
 
 	network.network.options.PREFIX.forEach((mode) => {
-		prefixLookup[mode.mode] = mode.symbol;
+		prefixLookup.modeToSymbol[mode.mode] = mode.symbol;
 	});
 
 	describe("#findMessage(id)", function () {

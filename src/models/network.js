@@ -5,6 +5,7 @@ const {v4: uuidv4} = require("uuid");
 const IrcFramework = require("irc-framework");
 const Chan = require("./chan");
 const Msg = require("./msg");
+const Prefix = require("./prefix");
 const Helper = require("../helper");
 const STSPolicies = require("../plugins/sts");
 const ClientCertificate = require("../plugins/clientCertificate");
@@ -43,7 +44,12 @@ function Network(attr) {
 		irc: null,
 		serverOptions: {
 			CHANTYPES: ["#", "&"],
-			PREFIX: ["!", "@", "%", "+"],
+			PREFIX: new Prefix([
+				{symbol: "!", mode: "Y"},
+				{symbol: "@", mode: "o"},
+				{symbol: "%", mode: "h"},
+				{symbol: "+", mode: "v"},
+			]),
 			NETWORK: "",
 		},
 
