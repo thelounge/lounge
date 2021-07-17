@@ -98,7 +98,7 @@ export const config = normalizeConfig({
 	media: {
 		default: true,
 	},
-	removeImageMetadata: {
+	uploadCanvas: {
 		default: true,
 	},
 	userStyles: {

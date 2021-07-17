@@ -86,15 +86,6 @@ function loadFromLocalStorage() {
 		storedSettings.highlights = storedSettings.highlights.join(", ");
 	}
 
-	// Convert deprecated uploadCanvas to removeImageMetadata
-	if (
-		storedSettings.uploadCanvas !== undefined &&
-		storedSettings.removeImageMetadata === undefined
-	) {
-		storedSettings.removeImageMetadata = storedSettings.uploadCanvas;
-		delete storedSettings.uploadCanvas;
-	}
-
 	return storedSettings;
 }
 

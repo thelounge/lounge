@@ -85,7 +85,6 @@ const config = {
 	},
 	externals: {
 		json3: "JSON", // socket.io uses json3.js, but we do not target any browsers that need it
-		sharp: "commonjs sharp",
 	},
 	plugins: [
 		new VueLoaderPlugin(),

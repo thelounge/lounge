@@ -104,11 +104,6 @@ function Client(manager, name, config = {}) {
 		delete client.config.awayMessage;
 	}
 
-	if (client.config.uploadCanvas) {
-		client.config.clientSettings.removeImageMetadata = client.config.uploadCanvas;
-		delete client.config.uploadCanvas;
-	}
-
 	if (client.config.clientSettings.awayMessage) {
 		client.awayMessage = client.config.clientSettings.awayMessage;
 	}
